@@ -1,7 +1,7 @@
 "use client"
-import { SearchInput } from "./componant/SearchInput.jsx"; 
-import { Card } from "./componant/Card.jsx";
-import { useEffect, useState } from "react"; 
+import { SearchInput } from "./_component/SearchInput.jsx"; 
+import { Card } from "./_component/Card.jsx";
+import { useEffect, useState } from "react";
 
 const API_KEY = '28f9714a181c403299b75845241312';
 
@@ -46,7 +46,7 @@ export default function Home() {
   return (
     <div className="flex w-full h-screen justify-center">
       <div className="w-[40%] h-screen bg-[#F3F4F6] text-black flex flex-col-reverse items-center jusrify-center pb-[200px]">
-        <Card 
+        <Card
         value="day" 
         temperature={dayWeather.dayTemperature} 
         condition={dayWeather.dayCondition} 
