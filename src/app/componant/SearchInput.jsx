@@ -14,4 +14,5 @@ export const SearchInput = ({ search, onChangeText , onPressEnter}) => {
             />
         </div>
     );
-}; 
+};
+
