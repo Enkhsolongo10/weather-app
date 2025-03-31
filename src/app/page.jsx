@@ -56,7 +56,7 @@ export default function Home() {
         <SearchInput 
         search={search} 
         onChangeText={onChangeText} 
-        onPressEnter={onPressEnter} 
+        onPressEnter={onPressEnter}
         />
       </div> 
 
