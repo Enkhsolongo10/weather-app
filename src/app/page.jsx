@@ -1,77 +1,190 @@
-"use client"
-import { SearchInput } from "./_component/SearchInput.jsx"; 
-import { Card } from "./_component/Card.jsx";
+"use client";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Manrope } from "next/font/google";
+import { SearchInput } from "./_components/SearchInput";
+import { Card } from "./_components/Card";
+import { WhiteCircle } from "./_components/WhiteCircle";
+import { CityList } from "./_components/citySuggestion";
 
-const API_KEY = '28f9714a181c403299b75845241312';
+const manrope = Manrope({ subsets: ["latin"] });
 
 export default function Home() {
-  const [search, setSearch] = useState(''); 
-  const [city, setCity] = useState("ulaanbaatar"); 
-  const [dayWeather, setDayWeather] = useState({
-   dayTemperature:0,
-   dayCondition:'',
-   nightTemperature:0,
-   nightCondition:'',
-   date: ''
-  });  
+  const [weatherData, setWeatherData] = useState({});
+  const [search, setSearch] = useState("");
+  const [city, setCity] = useState("Shanghai");
+  const [statusDay, setStatusDay] = useState(null);
+  const [statusNight, setStatusNight] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+  const [refreshing, setRefreshing] = useState("");
+  const [count, setCount] = useState(9);
+
+  const API_KEY = `6f9cc5eb8a37493783a72448241312`;
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch(
+          `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=1&aqi=no&alerts=no`
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+
+        setWeatherData(data);
+        changeStatusDay(data);
+        changeStatusNight(data);
+
+        console.log("tatsan tsag agaariin data:", data);
+        console.log("odoogiin hot:", city);
+      } catch (error) {
+        console.log("aldaa garlaa:", error);
+      }
+    };
+    fetchWeather();
+  }, [city]);
 
   const onChangeText = (event) => {
     setSearch(event.target.value);
   };
-  const onPressEnter = (e) => {
 
-    console.log(e.keycode)
-    if (e.code.includes('Enter')) {
-      console.log("enter daragdlaa")
+  const onPressEnter = (e) => {
+    if (e.key === "Enter") {
       setCity(search);
+      changeStatusDay();
+      changeStatusNight();
     }
-  }
-  useEffect(() => {
-    fetch(
-      `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=1&aqi=no&alerts=no`
-    ).then((response) => response.json())
-    .then((data) => {
-      console.log(data)
-      setDayWeather({
-        dayTemperature: data.forecast.forecastday[0]?.day.maxtemp_c,
-        dayCondition: data.forecast.forecastday[0].day.condition.text,
-        nightTemperature: data.forecast.forecastday[0].day.mintemp_c,
-        nightCondition: data.forecast.forecastday[0].hour[20].condition.text,
-        date: data.forecast.forecastday[0].date,
-      });
-    });
-  }, [city]); 
+  };
+
+  const changeStatusDay = (weatherData) => {
+    console.log(weatherData?.current?.condition?.text);
+    if (
+      weatherData?.current?.condition?.text
+        .toLowerCase()
+        .includes("overcast") ||
+      weatherData?.current?.condition?.text.toLowerCase().includes("cloud")
+    ) {
+      console.log("it's cloudy");
+    } else if (
+      weatherData?.current?.condition?.text.toLowerCase().includes("shower") ||
+      weatherData?.current?.condition?.text.toLowerCase().includes("rain")
+    ) {
+      setStatusDay("./img/rainy.png");
+      console.log("it's raining");
+    } else {
+      setStatusDay("./img/sunny.png");
+      console.log("it's sunny");
+    }
+  };
+  
+  const changeStatusNight = (weatherData) => {
+    console.log(
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+    );
+    if (
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+        .toLowerCase()
+        .includes("mist") ||
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+        .toLowerCase()
+        .includes("cloud") ||
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+        .toLowerCase()
+        .includes("overcast")
+    ) {
+      setStatusNight("./img/moon-cloudy.png");
+      console.log("it's cloudy");
+    } else if (
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+        .toLowerCase()
+        .includes("shower") ||
+      weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+        .toLowerCase()
+        .includes("rain")
+    ) {
+      setStatusNight("./img/moon-cloudy-rainy.png");
+      console.log("it's raining");
+    } else {
+      setStatusNight("./img/moon.png");
+      console.log("night has a clear sky");
+    }
+  };
+  console.log("the search:", search, "the city:", city);
 
   return (
-    <div className="flex w-full h-screen justify-center">
-      <div className="w-[40%] h-screen bg-[#F3F4F6] text-black flex flex-col-reverse items-center jusrify-center pb-[200px]">
-        <Card
-        value="day" 
-        temperature={dayWeather.dayTemperature} 
-        condition={dayWeather.dayCondition} 
-        date={dayWeather.date} 
-        cityName={city} 
-        /> 
-        <SearchInput 
-        search={search} 
-        onChangeText={onChangeText} 
-        onPressEnter={onPressEnter}
-        />
-      </div> 
-
-      <div className="w-[40%] h-screen bg-[#0F141E] flex flex-col-reverse items-center jusrify-center  pb-[200px]">
-        <Card 
-        value="night"  
-        temperature={dayWeather.nightTemperature} 
-        condition={dayWeather.nightCondition} 
-        date={dayWeather.date} 
-        cityName={city} 
-        />
+    <div
+      className={`flex w-[auto] h-[1200px] justify-content-center relative ${manrope.className}`}
+    >
+      <div className="w-[50%] h-[1200px] bg-white relative mx-auto">
+        {weatherData && (
+          <>
+            <Card
+              justify={`mx-auto`}
+              date={weatherData?.current?.last_updated}
+              theCity={weatherData?.location?.name}
+              theCountry={weatherData?.location?.country}
+              color="white"
+              from="from-slate-200"
+              to="to-white"
+              textColor="text-black"
+              temp={weatherData?.current?.temp_c}
+              feelsLike={weatherData?.current?.feelslike_c}
+              isTrue={true}
+              status={statusDay}
+              description={weatherData?.current?.condition?.text}
+              count={count}
+              refreshing={refreshing}
+            />
+          </>
+        )}
+        <div className="fixed mx-auto mt-10px lg:mr-3 mt-5 lg:absolute lg:top-10 lg:left-10 z-30">
+          <SearchInput
+            search={search}
+            onChangeText={onChangeText}
+            onPressEnter={onPressEnter}
+            setCity={setCity}
+          />
+          <CityList search={search} setCity={setCity} />
+        </div>
       </div>
-    </div> 
+
+      <div className="w-[50%] h-[1200px] bg-[#0f141e] relative rounded-3xl hidden lg:block">
+        {weatherData && (
+          <>
+            <Card
+              count={count}
+              date={weatherData?.current?.last_updated}
+              theCity={weatherData?.location?.name}
+              theCountry={weatherData?.location?.country}
+              color="black"
+              from="from-[#1f2937]"
+              to="to-[#111827]"
+              textColor="text-white"
+              temp={weatherData?.forecast?.forecastday[0]?.day?.mintemp_c}
+              status={statusNight}
+              border={`rounded-3xl`}
+              description={
+                weatherData?.forecast?.forecastday[0]?.hour[0]?.condition?.text
+              }
+              refreshing={refreshing}
+              // disappear={`lg:hidden]`}
+            />
+            <WhiteCircle size="w-[1340px] h-[1340px]" />
+            <WhiteCircle size="w-[940px] h-[940px]" />
+            <WhiteCircle size="w-[340px] h-[340px]" />
+            <WhiteCircle
+              size="w-[140px] h-[140px]"
+              color="bg-white"
+              logo={true}
+            />
+          </>
+        )}
+      </div>
+
+      {/* <WhiteCircle size="340px" /> */}
+    </div>
   );
-};
-
-
-
+}
